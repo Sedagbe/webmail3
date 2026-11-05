@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plateforme de Messagerie d'Entreprise</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    :root {
+      --primary: #0078d4;
+      --primary-hover: #106ebe;
+      --primary-light: #eff6fc;
+      --text-main: #201f1e;
+      --text-secondary: #605e5c;
+      --text-muted: #a19f9d;
+      --bg-page: #ffffff;
+      --bg-sidebar: #f3f2f1;
+      --bg-hover: #edebe9;
+      --border-color: #edebe9;
+      --border-subtle: #f8f8f8;
+      --danger-bg: #fde7e9;
+      --danger-text: #a80000;
+      --danger-border: #f1707b;
+      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    body {
+      font-family: var(--font-stack);
+      color: var(--text-main);
+      background-color: var(--bg-page);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Barre supérieure de navigation entre comptes (Onglets) */
+    .account-switcher-bar {
+      height: 40px;
+      background-color: #1b1a19;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      user-select: none;
+    }
+    .account-tabs {
+      display: flex;
+      gap: 6px;
+      height: 100%;
+      align-items: flex-end;
+    }
+    .account-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      height: 34px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #a19f9d;
+      background: #252423;
+      border-radius: 4px 4px 0 0;
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-bottom: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .account-tab:hover {
+      color: #ffffff;
+      background: #323130;
+    }
+    .account-tab.active {
+      color: #ffffff;
+      background: var(--primary);
+      font-weight: 600;
+    }
+    .tab-badge {
+      background: rgba(255, 255, 255, 0.25);
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+    .gateway-status {
+      font-size: 11px;
+      color: #797775;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #107c41;
+    }
+
+    /* En-tête Outlook */
+    .header {
+      height: 48px;
+      background-color: var(--primary);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .header-left, .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+    .header-subtitle {
+      font-size: 12px;
+      opacity: 0.85;
+      font-weight: 400;
+    }
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .user-info {
+      text-align: right;
+      line-height: 1.2;
+    }
+    .user-name {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .user-mail {
+      font-size: 10px;
+      opacity: 0.85;
+    }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    /* Barre d'outils */
+    .toolbar {
+      height: 44px;
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      transition: background 0.15s ease;
+    }
+    .btn:hover {
+      background-color: var(--bg-hover);
+    }
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+    .divider {
+      width: 1px;
+      height: 18px;
+      background-color: var(--border-color);
+      margin: 0 4px;
+    }
+
+    /* Agencement principal */
+    .main-layout {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Volet 1 : Dossiers */
+    .sidebar {
+      width: 220px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px 8px;
+      flex-shrink: 0;
+    }
+    .folder-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 6px 10px;
+    }
+    .folder-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: var(--text-main);
+      cursor: pointer;
+      margin-bottom: 2px;
+      transition: background 0.1s;
+    }
+    .folder-item:hover {
+      background-color: var(--bg-hover);
+    }
+    .folder-item.active {
+      background-color: #ffffff;
+      color: var(--primary);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .folder-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 1px 7px;
+      border-radius: 10px;
+    }
+    .sidebar-footer {
+      padding: 10px;
+      border-top: 1px solid #e1dfdd;
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* Volet 2 : Liste des messages */
+    .mail-list {
+      width: 320px;
+      border-right: 1px solid var(--border-color);
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .list-header {
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+      background-color: #faf9f8;
+      display: flex;
+      justify-content: space-between;
+    }
+    .mail-item {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: background 0.1s ease;
+      border-left: 3px solid transparent;
+    }
+    .mail-item:hover {
+      background-color: #faf9f8;
+    }
+    .mail-item.selected {
+      background-color: var(--primary-light);
+      border-left-color: var(--primary);
+    }
+    .mail-item-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .sender-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .mail-date {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .mail-subject {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mail-snippet {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* Volet 3 : Panneau de lecture */
+    .reading-pane {
+      flex: 1;
+      background-color: #ffffff;
+      overflow-y: auto;
+      padding: 32px 48px;
+    }
+    .message-container {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .message-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+    .message-subject {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+    .sender-meta {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .sender-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background-color: #0078d4;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .sender-details {
+      flex: 1;
+      font-size: 12px;
+    }
+    .sender-row-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2px;
+    }
+    .sender-display {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .sender-address {
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    .recipient-display {
+      color: var(--text-secondary);
+    }
+
+    /* Bannière de filtrage de sécurité (Corbeille) */
+    .security-banner {
+      background-color: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--danger-text);
+      font-size: 12px;
+    }
+    .security-banner svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      fill: currentColor;
+    }
+
+    /* Corps du message */
+    .message-body {
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #2b2b2b;
+      white-space: pre-wrap;
+    }
+    .action-link {
+      color: var(--primary);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    /* Fenêtre modale de rédaction */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 24px;
+      z-index: 1000;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .compose-box {
+      width: 580px;
+      background: #ffffff;
+      border-radius: 6px 6px 0 0;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+    .compose-header {
+      background: #f3f2f1;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .compose-header h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .btn-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1;
+    }
+    .compose-form {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .form-group {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 6px;
+    }
+    .form-label {
+      width: 70px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+    .form-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-main);
+    }
+    .form-textarea {
+      width: 100%;
+      height: 180px;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      font-family: inherit;
+      resize: none;
+      color: var(--text-main);
+      padding: 8px 0;
+      line-height: 1.5;
+    }
+    .compose-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+    }
+    .filter-notice {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Onglets de basculement entre comptes -->
+  <div class="account-switcher-bar">
+    <div class="account-tabs">
+      <div id="tab-julien" class="account-tab active" onclick="switchAccount('julien')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span>Julien Da Silva (Entreprise)</span>
+        <span id="badge-julien" class="tab-badge">1</span>
+      </div>
+      <div id="tab-horizon" class="account-tab" onclick="switchAccount('horizon')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        <span>Horizon Talent (Externe)</span>
+        <span id="badge-horizon" class="tab-badge" style="display:none;">0</span>
+      </div>
+    </div>
+    <div class="gateway-status">
+      <div class="status-dot"></div>
+      <span>Passerelle Nexis Mail Guard : active</span>
+    </div>
+  </div>
+
+  <!-- 2. En-tête Outlook -->
+  <header class="header">
+    <div class="header-left">
+      <svg class="icon" viewBox="0 0 16 16">
+        <circle cx="2" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="14" cy="2" r="1.5"/>
+        <circle cx="2" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="14" cy="8" r="1.5"/>
+        <circle cx="2" cy="14" r="1.5"/><circle cx="8" cy="14" r="1.5"/><circle cx="14" cy="14" r="1.5"/>
+      </svg>
+      <div>
+        <span class="header-title" id="hdr-title">Nexis Mail</span>
+        <span class="header-subtitle" id="hdr-sub">| Outlook Web</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-pill">
+        <div class="user-info">
+          <div class="user-name" id="hdr-user-name">Julien Da Silva</div>
+          <div class="user-mail" id="hdr-user-mail">julien.dasilva@nexis-cloud.fr</div>
+        </div>
+        <div class="user-avatar" id="hdr-user-avatar">JD</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. Barre d'outils -->
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="openComposeModal()">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 4v16m8-8H4"/>
+      </svg>
+      <span>Nouveau message</span>
+    </button>
+    <div class="divider"></div>
+    <button class="btn" onclick="deleteCurrentMessage()">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+      </svg>
+      <span>Supprimer</span>
+    </button>
+    <button class="btn" onclick="replyCurrentMessage()">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+      </svg>
+      <span>Répondre</span>
+    </button>
+  </div>
+
+  <!-- 4. Agencement 3 volets -->
+  <div class="main-layout">
+    
+    <!-- Volet Dossiers -->
+    <aside class="sidebar">
+      <div>
+        <div class="folder-group-title">Dossiers</div>
+        
+        <div class="folder-item active" id="f-inbox" onclick="selectFolder('inbox')">
+          <div class="folder-label">
+            <svg class="icon" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+            <span>Boîte de réception</span>
+          </div>
+          <span class="badge" id="count-inbox">0</span>
+        </div>
+
+        <div class="folder-item" id="f-sent" onclick="selectFolder('sent')">
+          <div class="folder-label">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            <span>Éléments envoyés</span>
+          </div>
+          <span class="badge" id="count-sent" style="display:none;">0</span>
+        </div>
+
+        <div class="folder-item" id="f-trash" onclick="selectFolder('trash')">
+          <div class="folder-label">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span>Corbeille</span>
+          </div>
+          <span class="badge" id="count-trash">0</span>
+        </div>
+      </div>
+
+      <div class="sidebar-footer" id="sidebar-footer-text">
+        <strong>Nexis Cloud Solutions</strong><br>
+        Microsoft Exchange Online<br>
+        Datacenter France-West
+      </div>
+    </aside>
+
+    <!-- Volet Liste des messages -->
+    <section class="mail-list" id="mail-list-container">
+      <div class="list-header">
+        <span id="current-folder-title">Boîte de réception</span>
+        <span style="color: var(--text-muted);">Tous</span>
+      </div>
+      <div id="messages-list"></div>
+    </section>
+
+    <!-- Volet Lecture -->
+    <main class="reading-pane" id="reading-pane">
+      <div class="message-container" id="reading-content">
+        <div class="empty-state">Sélectionnez un message pour en afficher le contenu.</div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- 5. Boîte Modale de rédaction -->
+  <div class="modal-overlay" id="compose-modal">
+    <div class="compose-box">
+      <div class="compose-header">
+        <h3 id="compose-title">Nouveau message</h3>
+        <button class="btn-close" onclick="closeComposeModal()">&times;</button>
+      </div>
+      <form class="compose-form" onsubmit="handleSendMessage(event)">
+        <div class="form-group">
+          <label class="form-label">De :</label>
+          <input type="text" id="compose-from" class="form-input" readonly style="color:var(--text-secondary);">
+        </div>
+        <div class="form-group">
+          <label class="form-label">À :</label>
+          <input type="email" id="compose-to" class="form-input" required placeholder="destinataire@domaine.fr">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Objet :</label>
+          <input type="text" id="compose-subject" class="form-input" required placeholder="Objet du message">
+        </div>
+        <textarea id="compose-body" class="form-textarea" placeholder="Saisissez votre message ici..."></textarea>
+        
+        <div class="compose-actions">
+          <div class="filter-notice">Filtrage de messagerie actif</div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn" onclick="closeComposeModal()">Annuler</button>
+            <button type="submit" class="btn btn-primary">Envoyer</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Configuration des deux comptes
+    const accounts = {
+      julien: {
+        name: "Julien Da Silva",
+        email: "julien.dasilva@nexis-cloud.fr",
+        avatar: "JD",
+        title: "Nexis Mail",
+        subtitle: "| Outlook Web",
+        footer: "<strong>Nexis Cloud Solutions SAS</strong><br>Microsoft Exchange Online<br>Datacenter France-West",
+        folders: {
+          inbox: [
+            {
+              id: 1,
+              fromName: "Thomas Renard",
+              fromEmail: "thomas.renard@nexis-cloud.fr",
+              toEmail: "julien.dasilva@nexis-cloud.fr",
+              date: "Hier",
+              time: "16:45",
+              subject: "Audit ISO 27001 : Revue trimestrielle des accès R&D",
+              body: "Bonjour Julien,\n\nPeux-tu t'assurer que les clés d'API obsolètes des déploiements staging sont bien révoquées avant vendredi soir ?\n\nMerci,\nThomas Renard - RSSI",
+              filtered: false
+            }
+          ],
+          sent: [],
+          trash: []
+        }
+      },
+      horizon: {
+        name: "Horizon Talent",
+        email: "contact@horizon-talent.com",
+        avatar: "HT",
+        title: "Horizon Mailer",
+        subtitle: "| Webmail Externe",
+        footer: "<strong>Horizon Search Partners</strong><br>Service Recrutement & Chasse",
+        folders: {
+          inbox: [],
+          sent: [],
+          trash: []
+        }
+      }
+    };
+
+    let currentAccount = 'julien';
+    let currentFolder = 'inbox';
+    let selectedMailId = null;
+
+    // Normalisation du texte pour détecter "rémunération" sans faille
+    function containsRemuneration(text) {
+      if (!text) return false;
+      const normalized = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      return normalized.includes("remuneration");
+    }
+
+    // Basculer d'un compte à l'autre via les onglets
+    function switchAccount(accountKey) {
+      currentAccount = accountKey;
+      currentFolder = 'inbox';
+      selectedMailId = null;
+
+      // Mise à jour visuelle des onglets
+      document.getElementById('tab-julien').classList.toggle('active', accountKey === 'julien');
+      document.getElementById('tab-horizon').classList.toggle('active', accountKey === 'horizon');
+
+      // Mise à jour de l'en-tête
+      const acc = accounts[accountKey];
+      document.getElementById('hdr-title').innerText = acc.title;
+      document.getElementById('hdr-sub').innerText = acc.subtitle;
+      document.getElementById('hdr-user-name').innerText = acc.name;
+      document.getElementById('hdr-user-mail').innerText = acc.email;
+      document.getElementById('hdr-user-avatar').innerText = acc.avatar;
+      document.getElementById('sidebar-footer-text').innerHTML = acc.footer;
+
+      updateUI();
+    }
+
+    // Sélection d'un dossier
+    function selectFolder(folderKey) {
+      currentFolder = folderKey;
+      selectedMailId = null;
+
+      document.querySelectorAll('.folder-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('f-' + folderKey).classList.add('active');
+
+      const titles = { inbox: 'Boîte de réception', sent: 'Éléments envoyés', trash: 'Corbeille' };
+      document.getElementById('current-folder-title').innerText = titles[folderKey];
+
+      updateUI();
+    }
+
+    // Mise à jour globale de l'interface
+    function updateUI() {
+      const acc = accounts[currentAccount];
+
+      // Mise à jour des compteurs de dossiers
+      const inboxCount = acc.folders.inbox.length;
+      const trashCount = acc.folders.trash.length;
+
+      document.getElementById('count-inbox').innerText = inboxCount;
+      document.getElementById('count-trash').innerText = trashCount;
+
+      // Badges des onglets
+      const julienUnread = accounts.julien.folders.inbox.length;
+      document.getElementById('badge-julien').innerText = julienUnread;
+
+      const horizonUnread = accounts.horizon.folders.inbox.length;
+      const badgeHorizon = document.getElementById('badge-horizon');
+      badgeHorizon.innerText = horizonUnread;
+      badgeHorizon.style.display = horizonUnread > 0 ? 'inline-block' : 'none';
+
+      // Affichage de la liste des e-mails
+      const messages = acc.folders[currentFolder];
+      const listContainer = document.getElementById('messages-list');
+      listContainer.innerHTML = '';
+
+      if (messages.length === 0) {
+        listContainer.innerHTML = '<div class="empty-state">Aucun message dans ce dossier.</div>';
+        renderReadingPane(null);
+        return;
+      }
+
+      messages.forEach(msg => {
+        const item = document.createElement('article');
+        item.className = 'mail-item' + (msg.id === selectedMailId ? ' selected' : '');
+        item.onclick = () => selectMail(msg.id);
+
+        const displayName = currentFolder === 'sent' ? ('À : ' + msg.toEmail) : msg.fromName;
+        const snippet = msg.body.replace(/\n/g, ' ').substring(0, 75) + '...';
+
+        item.innerHTML = `
+          <div class="mail-item-header">
+            <span class="sender-name">${escapeHtml(displayName)}</span>
+            <span class="mail-date">${msg.time || msg.date}</span>
+          </div>
+          <div class="mail-subject">${escapeHtml(msg.subject)}</div>
+          <div class="mail-snippet">${escapeHtml(snippet)}</div>
+        `;
+        listContainer.appendChild(item);
+      });
+
+      // Si aucun message n'est sélectionné, sélectionner le premier
+      if (selectedMailId === null && messages.length > 0) {
+        selectMail(messages[0].id);
+      } else {
+        const currentMsg = messages.find(m => m.id === selectedMailId);
+        renderReadingPane(currentMsg || null);
+      }
+    }
+
+    function selectMail(id) {
+      selectedMailId = id;
+      document.querySelectorAll('.mail-item').forEach(el => el.classList.remove('selected'));
+      updateUI();
+    }
+
+    // Affichage dans le volet de lecture
+    function renderReadingPane(msg) {
+      const container = document.getElementById('reading-content');
+      if (!msg) {
+        container.innerHTML = '<div class="empty-state">Sélectionnez un message pour en afficher le contenu.</div>';
+        return;
+      }
+
+      let bannerHtml = '';
+      if (msg.filtered) {
+        bannerHtml = `
+          <div class="security-banner">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            <div>
+              <strong>Règle de sécurité SEG-402 :</strong> Ce message a été automatiquement déplacé dans la <strong>Corbeille</strong> car il contient le mot réservé <em>« rémunération »</em>.
+            </div>
+          </div>
+        `;
+      }
+
+      const avatarInitials = (msg.fromName || 'U').substring(0, 2).toUpperCase();
+
+      container.innerHTML = `
+        ${bannerHtml}
+        <header class="message-header">
+          <h1 class="message-subject">${escapeHtml(msg.subject)}</h1>
+          <div class="sender-meta">
+            <div class="sender-badge">${avatarInitials}</div>
+            <div class="sender-details">
+              <div class="sender-row-main">
+                <div>
+                  <span class="sender-display">${escapeHtml(msg.fromName)}</span>
+                  <span class="sender-address">&lt;${escapeHtml(msg.fromEmail)}&gt;</span>
+                </div>
+                <div class="mail-date">${msg.date} à ${msg.time}</div>
+              </div>
+              <div class="recipient-display">
+                À : <strong>${escapeHtml(msg.toEmail)}</strong>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div class="message-body">${formatBodyWithLinks(msg.body)}</div>
+      `;
+    }
+
+    // Formatage des liens "cliquez ici"
+    function formatBodyWithLinks(text) {
+      const escaped = escapeHtml(text);
+      return escaped.replace(/cliquez ici/gi, '<a href="https://iplogger.com/2Wfy74" target="_blank" rel="noopener noreferrer" class="action-link">cliquez ici</a>');
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Modal de composition
+    function openComposeModal(defaultTo = '', defaultSubject = '', defaultBody = '') {
+      const currentSender = accounts[currentAccount].email;
+      document.getElementById('compose-from').value = currentSender;
+      document.getElementById('compose-to').value = defaultTo || (currentAccount === 'horizon' ? 'julien.dasilva@nexis-cloud.fr' : 'contact@horizon-talent.com');
+      document.getElementById('compose-subject').value = defaultSubject;
+      document.getElementById('compose-body').value = defaultBody;
+      document.getElementById('compose-modal').classList.add('active');
+    }
+
+    function closeComposeModal() {
+      document.getElementById('compose-modal').classList.remove('active');
+    }
+
+    // Envoi et application de la règle de sécurité
+    function handleSendMessage(e) {
+      e.preventDefault();
+      const senderAcc = accounts[currentAccount];
+      const toEmail = document.getElementById('compose-to').value.trim();
+      const subject = document.getElementById('compose-subject').value.trim();
+      const body = document.getElementById('compose-body').value;
+
+      const now = new Date();
+      const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+      const messageObj = {
+        id: Date.now(),
+        fromName: senderAcc.name,
+        fromEmail: senderAcc.email,
+        toEmail: toEmail,
+        date: "Aujourd'hui",
+        time: timeStr,
+        subject: subject,
+        body: body,
+        filtered: false
+      };
+
+      // 1. Sauvegarder dans "Éléments envoyés" de l'expéditeur
+      senderAcc.folders.sent.unshift(messageObj);
+
+      // 2. Traitement à destination de Julien Da Silva
+      if (toEmail.toLowerCase().includes('julien.dasilva')) {
+        const fullContent = subject + " " + body;
+        
+        // RÈGLE : Si le contenu contient "rémunération", redirection directe vers la Corbeille
+        if (containsRemuneration(fullContent)) {
+          messageObj.filtered = true;
+          accounts.julien.folders.trash.unshift(messageObj);
+        } else {
+          accounts.julien.folders.inbox.unshift(messageObj);
+        }
+      } 
+      // Traitement à destination du compte externe
+      else if (toEmail.toLowerCase().includes('horizon-talent')) {
+        accounts.horizon.folders.inbox.unshift(messageObj);
+      }
+
+      closeComposeModal();
+      updateUI();
+    }
+
+    // Suppression manuelle d'un message
+    function deleteCurrentMessage() {
+      const acc = accounts[currentAccount];
+      const list = acc.folders[currentFolder];
+      const index = list.findIndex(m => m.id === selectedMailId);
+      if (index === -1) return;
+
+      const [removed] = list.splice(index, 1);
+      if (currentFolder !== 'trash') {
+        acc.folders.trash.unshift(removed);
+      }
+      selectedMailId = null;
+      updateUI();
+    }
+
+    // Répondre au message en cours
+    function replyCurrentMessage() {
+      const acc = accounts[currentAccount];
+      const msg = acc.folders[currentFolder].find(m => m.id === selectedMailId);
+      if (!msg) return;
+
+      const replyTo = currentFolder === 'sent' ? msg.toEmail : msg.fromEmail;
+      const replySub = msg.subject.startsWith('Re:') ? msg.subject : ('Re: ' + msg.subject);
+      const quoted = `\n\n--- Message d'origine ---\nDe : ${msg.fromName} <${msg.fromEmail}>\nObjet : ${msg.subject}\n\n${msg.body}`;
+
+      openComposeModal(replyTo, replySub, quoted);
+    }
+
+    // Initialisation au chargement
+    window.onload = function() {
+      updateUI();
+    };
+  </script>
+</body>
+</html>
